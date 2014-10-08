@@ -157,6 +157,7 @@ public class PurgerCli {
      */
     public void purge() {
         purger.purge(filesForDeletion, dryRun);
+        purger.shutdown();
     }
     
 }

@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
+import javax.jms.JMSException;
+
 import org.bitrepository.bitrepositoryelements.ChecksumDataForFileTYPE;
 import org.bitrepository.bitrepositoryelements.ChecksumSpecTYPE;
 import org.bitrepository.bitrepositoryelements.ChecksumType;
@@ -13,6 +15,8 @@ import org.bitrepository.client.eventhandler.EventHandler;
 import org.bitrepository.common.utils.Base16Utils;
 import org.bitrepository.common.utils.CalendarUtils;
 import org.bitrepository.modify.deletefile.DeleteFileClient;
+import org.bitrepository.protocol.messagebus.MessageBus;
+import org.bitrepository.protocol.messagebus.MessageBusManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +95,6 @@ public class Purger {
         } else {
             reportResults(resultHandler.getFailedJobs());
         }
-        
     }
     
     /**
@@ -134,6 +137,22 @@ public class Purger {
                 sb.append(job.getStatus()).append(": ").append(job.getFileID()).append(" ").append(job.getChecksum());
                 System.out.println(sb.toString());
             }
+        }
+    }
+    
+    /**
+     * Method to shutdown the client properly.
+     */
+    public void shutdown() {
+        try {
+            MessageBus messageBus = MessageBusManager.getMessageBus();
+            if (messageBus != null) {
+                MessageBusManager.getMessageBus().close();
+            }
+        } catch (JMSException e) {
+            log.warn("Failed to shutdown messagebus connection", e);
+        } catch (Exception e) {
+            log.warn("Caught unexpected exception while closing messagebus down", e);
         }
     }
 }
