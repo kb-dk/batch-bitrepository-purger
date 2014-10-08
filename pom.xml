@@ -14,8 +14,7 @@
   <scm>
     <url>https://github.com/statsbiblioteket/batch-bitrepository-purger</url>
     <connection>scm:git:https://github.com/statsbiblioteket/batch-bitrepository-purger.git</connection>
-    <developerConnection>scm:git:git@github.com:statsbiblioteket/batch-bitrepository-purger.git
-    </developerConnection>
+    <developerConnection>scm:git:git@github.com:statsbiblioteket/batch-bitrepository-purger.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
