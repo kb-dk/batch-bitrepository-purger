@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>batch-bitrepository-purger</artifactId>
-  <version>1.1</version>
+  <version>1.2-SNAPSHOT</version>
 
   <parent>
     <groupId>dk.statsbiblioteket.newspaper</groupId>
@@ -15,7 +15,7 @@
     <url>https://github.com/statsbiblioteket/batch-bitrepository-purger</url>
     <connection>scm:git:https://github.com/statsbiblioteket/batch-bitrepository-purger.git</connection>
     <developerConnection>scm:git:git@github.com:statsbiblioteket/batch-bitrepository-purger.git</developerConnection>
-    <tag>batch-bitrepository-purger-1.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <repositories>
