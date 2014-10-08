@@ -33,14 +33,18 @@ public class DeleteFileEventHandler implements EventHandler {
     public void handleEvent(OperationEvent event) {
         if (event.getEventType().equals(OperationEvent.OperationEventType.COMPLETE)) {
             DeleteJob job = getJob(event);
-            log.info("Completed deleting file '{}' with checksum '{}'", job.getFileID(), job.getChecksum());
-            operationLimiter.removeJob(job);
+            if(job != null) {
+                log.info("Completed deleting file '{}' with checksum '{}'", job.getFileID(), job.getChecksum());
+                operationLimiter.removeJob(job);
+            } 
         } else if (event.getEventType().equals(OperationEvent.OperationEventType.FAILED)) {
             DeleteJob job = getJob(event);
-            log.info("Failed deleting file'{}' with checksum '{}'", job.getFileID(), job.getChecksum());
-            job.setStatus(JobStatus.FAILED);
-            resultHandler.addFailure(job);
-            operationLimiter.removeJob(job);
+            if(job != null) {
+                log.info("Failed deleting file '{}' with checksum '{}'", job.getFileID(), job.getChecksum());
+                job.setStatus(JobStatus.FAILED);
+                resultHandler.addFailure(job);
+                operationLimiter.removeJob(job);
+            }
         }
     }
 
@@ -50,6 +54,9 @@ public class DeleteFileEventHandler implements EventHandler {
     private DeleteJob getJob(OperationEvent event) {
         DeleteJob job = null;
         job = operationLimiter.getJob(event.getFileID());
+        if(job == null) {
+            log.warn("Could not find job for fileID: " + event.getFileID());
+        }
         return job;
     }
     

@@ -2,6 +2,7 @@ package dk.statsbiblioteket.medieplatform.bitrepository.purger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
@@ -36,6 +37,7 @@ public class PurgerCli {
     private final static String CERTIFICATE_FILE_PROPERTY = "bitrepository.purger.certificate";
     private final static String MAX_ASYNC_PROPERTY = "bitrepository.purger.numberofasyncdeletes";
     private final static String MAX_RUNTIME_PROPERTY = "bitrepository.purger.maxruntime";
+    private final static String DELETE_MESSAGE_PROPERTY = "bitrepository.purger.message";
     
     private final static String PERFORM_DELETE_OPT = "performdelete";
     private final static String FILELIST_OPT = "filelist";
@@ -75,17 +77,18 @@ public class PurgerCli {
         int maxRuntime = Integer.parseInt(properties.getProperty(MAX_RUNTIME_PROPERTY));
         
         purger = new Purger(client, properties.getProperty(COLLECTION_ID_PROPERTY),
-                properties.getProperty(PILLAR_ID_PROPERTY), maxAsync, maxRuntime);
+                properties.getProperty(PILLAR_ID_PROPERTY), properties.getProperty(DELETE_MESSAGE_PROPERTY),
+                maxAsync, maxRuntime);
     }
     
     /**
      * Parse the arguments needed for the purger 
      * @throws ParseException if commandline options cannot be parsed.
      */
-    private void parseArgs(String[] args) throws ParseException {
+    private void parseArgs(String[] args) {
         CommandLineParser parser = new PosixParser();
         Options options = new Options();
-        CommandLine cmd;
+        CommandLine cmd = null;
         
         Option filelistOpt = new Option(FILELIST_OPT, true, "File containing the list of files to delete");
         filelistOpt.setRequired(true);
@@ -93,16 +96,33 @@ public class PurgerCli {
         options.addOption(filelistOpt);
         options.addOption(performOpt);
         
-        cmd = parser.parse(options, args, false);
+        try {
+            cmd = parser.parse(options, args, false);
+        } catch (ParseException e) {
+            System.err.println(createUsageText(options) + " Missing argument: " + e.getMessage());
+            System.exit(1);
+        }
         
         if(cmd.hasOption(PERFORM_DELETE_OPT)) {
             dryRun = false;
         }
-        filesForDeletion = new File(options.getOption(FILELIST_OPT).getValue());
+        filesForDeletion = new File(cmd.getOptionValue(FILELIST_OPT));
         if(!filesForDeletion.exists()) {
             System.err.println("File '" + filesForDeletion + "' does not exist.");
             System.exit(1);
         }
+    }
+    
+    /**
+     * Method to create usage text 
+     */
+    private String createUsageText(Options options) {
+        StringBuilder res = new StringBuilder();
+        res.append("Takes the following arguments:\n");
+        for(Option option : (Collection<Option>) options.getOptions()) {
+            res.append("-" + option.getOpt() + " " + option.getDescription() + "\n");
+        }
+        return res.toString();
     }
     
     /**
@@ -138,5 +158,5 @@ public class PurgerCli {
     public void purge() {
         purger.purge(filesForDeletion, dryRun);
     }
-
+    
 }

@@ -16,9 +16,9 @@ public class DeleteJob {
         CREATED;
     }
     
-    final String fileID;
-    final String checksum;
-    JobStatus status;
+    private final String fileID;
+    private final String checksum;
+    private JobStatus status;
     
     /**
      * Constructor for creating a DeleteJob, the job's status is initialized with the CREATED status.

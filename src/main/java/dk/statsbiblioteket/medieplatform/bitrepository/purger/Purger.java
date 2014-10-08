@@ -28,12 +28,13 @@ import dk.statsbiblioteket.medieplatform.bitrepository.purger.DeleteJob.JobStatu
 public class Purger {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private DeleteFileClient client;
+    private final DeleteFileClient deleteClient;
     private final String pillarID;
     private final String collectionID;
     private final ParallelOperationLimiter operationLimiter;
     private final ResultHandler resultHandler;
     private final EventHandler eventHandler;
+    private final String deleteMessage;
     
     /**
      * Create the purger
@@ -43,10 +44,11 @@ public class Purger {
      * @param maxAsync The maximum number of asynchronous deletes 
      * @param maxRuntime The maximum number of seconds that will be waited before shutting down the purger 
      */
-    Purger(DeleteFileClient deleteClient, String collectionID, String pillarID, int maxAsync, int maxRuntime) {
-        client = deleteClient;
+    Purger(DeleteFileClient deleteClient, String collectionID, String pillarID, String deleteMessage, int maxAsync, int maxRuntime) {
+        this.deleteClient = deleteClient;
         this.collectionID = collectionID;
         this.pillarID = pillarID;
+        this.deleteMessage = deleteMessage;
         resultHandler = new ResultHandler();
         operationLimiter = new ParallelOperationLimiter(resultHandler, maxAsync, maxRuntime);
         eventHandler = new DeleteFileEventHandler(operationLimiter, resultHandler);
@@ -63,18 +65,21 @@ public class Purger {
         try(BufferedReader br = new BufferedReader(new FileReader(fileList));) {
             String line;
             while((line = br.readLine()) != null) {
-                String[] tokens = line.split("\\s");
-                String fileID = tokens[0];
-                String checksum = tokens[1];
-                if(dryRun) {
+                String[] tokens = line.trim().split("\\s");
+                if(tokens.length == 2) {
+                    String fileID = tokens[0];
+                    String checksum = tokens[1];
                     DeleteJob job = new DeleteJob(fileID, checksum);
-                    job.setStatus(JobStatus.DRYRUN);
-                    resultHandler.addDryRun(job);
+                    if(dryRun) {
+                        job.setStatus(JobStatus.DRYRUN);
+                        resultHandler.addDryRun(job);
+                    } else {
+                        deleteFile(job);    
+                    }
                 } else {
-                    deleteFile(fileID, checksum);    
-                }   
+                    log.warn("Malformed line encountered. Line was: '" + line + "'. Line was ignored");
+                }
             }
-            
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -94,12 +99,11 @@ public class Purger {
      * @param fileID The ID of the file to delete
      * @param checksum The checksum of the file to be deleted 
      */
-    private void deleteFile(String fileID, String checksum) {
-        DeleteJob job = new DeleteJob(fileID, checksum);
+    private void deleteFile(DeleteJob job) {
         operationLimiter.addJob(job);
         log.info("Added delete job for file {}", job.getFileID());
-        client.deleteFile(collectionID, job.getFileID(), pillarID, getChecksumDate(job.getChecksum()), null, 
-                eventHandler, "Deleting file as part of batch purge");
+        deleteClient.deleteFile(collectionID, job.getFileID(), pillarID, getChecksumData(job.getChecksum()), null, 
+                eventHandler, deleteMessage);
     }
     
     /**
@@ -107,7 +111,7 @@ public class Purger {
      * The current implementation assumes that MD5 checksums are used. 
      * @param checksum The checksum to put into the data structure  
      */
-    private ChecksumDataForFileTYPE getChecksumDate(String checksum) {
+    private ChecksumDataForFileTYPE getChecksumData(String checksum) {
         ChecksumDataForFileTYPE res = new ChecksumDataForFileTYPE();
         res.setCalculationTimestamp(CalendarUtils.getNow());
         ChecksumSpecTYPE checksumSpec = new ChecksumSpecTYPE();

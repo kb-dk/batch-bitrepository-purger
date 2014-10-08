@@ -43,7 +43,7 @@ public class BitrepositoryPurgerTest {
                 eventHandler.handleEvent(event);
             }
         };
-        Purger purger = spy(new Purger(client, TEST_COLLECTION, TEST_PILLAR_ID, 8, 3600));
+        Purger purger = spy(new Purger(client, TEST_COLLECTION, TEST_PILLAR_ID, "delete message", 8, 3600));
         File testFile = new File("src/test/resources/small-test-input-file");
         
         purger.purge(testFile, PERFORM);
@@ -63,7 +63,7 @@ public class BitrepositoryPurgerTest {
         boolean DRYRUN = true;
         DeleteFileClient client = mock(DeleteFileClient.class);
         
-        Purger purger = spy(new Purger(client, TEST_COLLECTION, TEST_PILLAR_ID, 8, 3600));
+        Purger purger = spy(new Purger(client, TEST_COLLECTION, TEST_PILLAR_ID, "delete message", 8, 3600));
         File testFile = new File("src/test/resources/small-test-input-file");
         
         purger.purge(testFile, DRYRUN);
@@ -95,7 +95,7 @@ public class BitrepositoryPurgerTest {
                 eventHandler.handleEvent(event);
             }
         };
-        Purger purger = spy(new Purger(client, TEST_COLLECTION, TEST_PILLAR_ID, 8, 3600));
+        Purger purger = spy(new Purger(client, TEST_COLLECTION, TEST_PILLAR_ID, "delete message", 8, 3600));
         File testFile = new File("src/test/resources/small-test-input-file");
         
         purger.purge(testFile, PERFORM);
@@ -123,7 +123,7 @@ public class BitrepositoryPurgerTest {
                     EventHandler eventHandler, String auditTrailInformation) {
             }
         };
-        Purger purger = spy(new Purger(client, TEST_COLLECTION, TEST_PILLAR_ID, 8, 1));
+        Purger purger = spy(new Purger(client, TEST_COLLECTION, TEST_PILLAR_ID, "delete message", 8, 1));
         File testFile = new File("src/test/resources/small-test-input-file");
         
         purger.purge(testFile, PERFORM);
